@@ -142,12 +142,12 @@
       if (previousProblem) {
         if (isCorrect(previousProblem)) {
           document.querySelector('#previous-result').textContent = '🥷 you got it way to go! 🥷';
-          // new Audio('/audio/gadeej.mp3').play();
-          new Audio('/audio/anderson-singing-sugar-were-going-down.m4a').play();
+          // new Audio('audio/gadeej.mp3').play();
+          new Audio('audio/anderson-singing-sugar-were-going-down.m4a').play();
         } else {
           document.querySelector('#previous-result').textContent =
             `⛔️ Not quite, ${previousProblem.left} ${previousProblem.operation} ${previousProblem.right} does not equal ${previousProblem.answer}️️ ⛔️`;
-          new Audio('/audio/fart.mp3').play();
+          new Audio('audio/fart.mp3').play();
         }
       } else {
         document.querySelector('#previous-result').classList.add('invisible');
