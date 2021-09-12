@@ -99,6 +99,7 @@
 
     <form>
       <input type=number pattern="\d*" name=answer autofocus />
+      <input type=submit name=submit value=submit />
     </form>
 
     <p>
@@ -189,7 +190,7 @@
   <div id=loot>
     <p>
       <span id=coins></span> x
-      <img src="/img/coin.jpg" />
+      <img src="img/coin.jpg" />
     </p>
 
     <div id=awards>
@@ -210,9 +211,9 @@
 
   <script>
     const ALL_AWARDS = [
-      { url: '/img/jay.jpg' },
-      { url: '/img/kai.jpg' },
-      { url: '/img/loyd.jpg' },
+      { url: 'img/jay.jpg' },
+      { url: 'img/kai.jpg' },
+      { url: 'img/loyd.jpg' },
     ];
 
     const initialState = localStorage.getItem('state');
