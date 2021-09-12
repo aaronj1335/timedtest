@@ -62,7 +62,11 @@
     }
 
     input {
-      font-size: 1rem;
+      font-size: 2rem;
+    }
+
+    button {
+      font-size: 2rem;
     }
   </style>
 </head>
@@ -142,8 +146,7 @@
       if (previousProblem) {
         if (isCorrect(previousProblem)) {
           document.querySelector('#previous-result').textContent = '🥷 you got it way to go! 🥷';
-          // new Audio('audio/gadeej.mp3').play();
-          new Audio('audio/anderson-singing-sugar-were-going-down.m4a').play();
+          new Audio('audio/guitar.mp3').play();
         } else {
           document.querySelector('#previous-result').textContent =
             `⛔️ Not quite, ${previousProblem.left} ${previousProblem.operation} ${previousProblem.right} does not equal ${previousProblem.answer}️️ ⛔️`;
@@ -158,7 +161,7 @@
 
       document.querySelector('.count').textContent = state.problems.length;
 
-      document.querySelector('input').focus()
+      document.querySelector(ANSWER_SELECTOR).focus()
 
     }
   </script>
@@ -168,6 +171,8 @@
 
     <p>You're all done. You got <span class=correct></span> correct out of <span class=count></span> questions</p>
 
+    <p>It took you <span class=minutes></span> minutes and <span class=seconds></span> seconds.</p>
+
     <p>
       <button autofocus onclick="onStartGame()">START GAME AGAIN!!! 🥷🔥</button>
     </p>
@@ -175,11 +180,17 @@
 
   <script>
     function renderDone(root) {
+      new Audio('audio/anderson-singing-sugar-were-going-down.m4a').play();
+
       const doneTemplate = document.getElementById('done');
       root.innerHTML = doneTemplate.innerHTML;
 
       root.querySelector('.correct').textContent = state.problems.filter(isCorrect).length;
       root.querySelector('.count').textContent = state.problems.length;
+
+      const totalSeconds = (state.end - state.start) / 1000;
+      root.querySelector('.minutes').textContent = Math.floor(totalSeconds / 60);
+      root.querySelector('.seconds').textContent = Math.floor(totalSeconds % 60);
 
       document.querySelector('button').focus()
     }
@@ -217,10 +228,16 @@
     ];
 
     const initialState = localStorage.getItem('state');
-    var state = initialState ? JSON.parse(initialState) : { loot: { coins: 0, awards: [] } };
+    var state = initialState ? JSON.parse(initialState) : {
+      loot: {
+        coins: 0,
+        awards: []
+      }
+    };
     window.state = state;
 
     // state = {
+    //   start: Date.now(),
     //   problems: [
     //     { left: 3, right: 8, operation: '+', answer: 11 },
     //     { left: 8, right: 4, operation: '-', answer: 4 },
@@ -229,13 +246,22 @@
     //   loot: {
     //     coins: 10,
     //     awards: [
-    //       {url: '/img/jay.jpg'},
-    //       {url: '/img/kai.jpg'},
+    //       // {url: '/img/jay.jpg'},
+    //       // {url: '/img/kai.jpg'},
     //     ]
     //   },
     // }
 
     const operations = ['+', '-'];
+    const ANSWER_SELECTOR = 'input[name=answer]';
+
+    document.addEventListener('keyup', event => {
+      const el = document.activeElement;
+      if (/^Digit\d/.test(event.code) &&
+          document.activeElement?.matches(ANSWER_SELECTOR)) {
+        new Audio('audio/punch.mp3').play();
+      }
+    });
 
     function persistState() {
       const toStore = { ...state };
@@ -275,6 +301,8 @@
         return problem;
       });
 
+      state.start = Date.now();
+
       render();
     }
 
@@ -282,6 +310,10 @@
       console.log('getting answer');
       event.preventDefault();
       const input = parseInt(document.querySelector('[name=answer]').value, 10);
+
+      // Prevent accidentally submitting w/ empty value.
+      if (isNaN(input)) return;
+
       const currentProblem = state.problems.find(value => value.answer == null);
       currentProblem.answer = input;
 
@@ -297,6 +329,7 @@
           state.loot.awards.length < ALL_AWARDS.length) {
           const currentAwardUrls = new Set(state.loot.awards.map(a => a.url));
           state.loot.awards.push(ALL_AWARDS.find(a => !currentAwardUrls.has(a.url)));
+          state.end = Date.now();
         }
       }
 
