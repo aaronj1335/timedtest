@@ -3,7 +3,9 @@
 
 <head>
   <meta charset=utf-8>
-  <title>blah</title>
+  <title>sweet calculator game</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
     body {
@@ -32,6 +34,11 @@
       z-index: -1;
     }
 
+    #previous-result {
+      height: 2rem;
+      margin: 0 0 1rem 0;
+    }
+
     @keyframes move-up {
       from {
         transform: translateY(3rem);
@@ -43,17 +50,38 @@
         opacity: 60%;
       }
     }
+
+    #loot {
+      position: fixed;
+      right: 0;
+      top: 0;
+    }
+
+    #loot img {
+      width: 3rem;
+    }
+
+    input {
+      font-size: 1rem;
+    }
   </style>
 </head>
 
 <body>
 
   <template id=start>
-    <button autofocus onclick="startGame()">LEGO NINJA!!!!! 🥷🔥</button>
+    <button autofocus onclick="onStartGame()">START GAME!!! 🥷🔥</button>
   </template>
 
-  <template id=test>
-    <div id=previous-result>&npsp;</div>
+  <script>
+    function renderStart(root) {
+      const startTemplate = document.getElementById('start');
+      root.innerHTML = startTemplate.innerHTML;
+    }
+  </script>
+
+  <template id=game>
+    <div id=previous-result>&#129399;</div>
 
     <h2 class=previous>
       <span class=previousleft></span>
@@ -70,32 +98,149 @@
     </h2>
 
     <form>
-      <input type=number name=answer autofocus />
+      <input type=number pattern="\d*" name=answer autofocus />
     </form>
 
+    <p>
+      <span class=answered></span> / <span class=count></span> answered so far.
+    </p>
+
   </template>
-
-  <template id=done>
-    <h1>YOU DID IT!</h1>
-
-    <p>You're all done. You got <span class=correct></span> correct out of <span class=count></span> questions</p>
-  </template>
-
-  <div id=game></div>
 
   <script>
-    var state = {};
+    function renderGame(root) {
+      const gameTemplate = document.getElementById('game');
+
+      const currentProblem = state.problems.find(value => value.answer == null);
+
+      const previousProblem = state.problems.slice().reverse()
+        .find(value => value.answer != null);
+
+      root.innerHTML = gameTemplate.innerHTML;
+
+      if (previousProblem) {
+        root.querySelector('.previousleft').textContent = previousProblem.left;
+        root.querySelector('.previousright').textContent = previousProblem.right;
+        root.querySelector('.previousoperation').textContent = previousProblem.operation;
+        root.querySelector('.previousanswer').textContent = previousProblem.answer;
+
+        if (isCorrect(previousProblem)) {
+          root.querySelector('.previous').style = 'color: green';
+        } else {
+          root.querySelector('.previous').style = 'color: red';
+        }
+      } else {
+        root.querySelector('.previous').classList.add('invisible');
+      }
+
+      document.querySelector('form').onsubmit = onGetAnswer;
+      document.querySelector('.left').textContent = currentProblem.left;
+      document.querySelector('.operation').textContent = currentProblem.operation;
+      document.querySelector('.right').textContent = currentProblem.right;
+
+      if (previousProblem) {
+        if (isCorrect(previousProblem)) {
+          document.querySelector('#previous-result').textContent = '🥷 you got it way to go! 🥷';
+          // new Audio('/audio/gadeej.mp3').play();
+          new Audio('/audio/anderson-singing-sugar-were-going-down.m4a').play();
+        } else {
+          document.querySelector('#previous-result').textContent =
+            `⛔️ Not quite, ${previousProblem.left} ${previousProblem.operation} ${previousProblem.right} does not equal ${previousProblem.answer}️️ ⛔️`;
+          new Audio('/audio/fart.mp3').play();
+        }
+      } else {
+        document.querySelector('#previous-result').classList.add('invisible');
+      }
+
+      document.querySelector('.answered').textContent =
+        state.problems.filter(q => q.answer != null).length;
+
+      document.querySelector('.count').textContent = state.problems.length;
+
+      document.querySelector('input').focus()
+
+    }
+  </script>
+
+  <template id=done>
+    <h1>DONE!</h1>
+
+    <p>You're all done. You got <span class=correct></span> correct out of <span class=count></span> questions</p>
+
+    <p>
+      <button autofocus onclick="onStartGame()">START GAME AGAIN!!! 🥷🔥</button>
+    </p>
+  </template>
+
+  <script>
+    function renderDone(root) {
+      const doneTemplate = document.getElementById('done');
+      root.innerHTML = doneTemplate.innerHTML;
+
+      root.querySelector('.correct').textContent = state.problems.filter(isCorrect).length;
+      root.querySelector('.count').textContent = state.problems.length;
+
+      document.querySelector('button').focus()
+    }
+  </script>
+
+  <div id=root></div>
+
+  <div id=loot>
+    <p>
+      <span id=coins></span> x
+      <img src="/img/coin.jpg" />
+    </p>
+
+    <div id=awards>
+    </div>
+  </div>
+
+  <script>
+    function renderLoot() {
+      document.getElementById('coins').textContent = state.loot.coins || 0;
+      document.getElementById('awards').innerHTML =
+        (state.loot.awards || []).map(award => `
+          <div>
+            <img src="${award.url}" />
+          </div>`)
+          .join('\n');
+    }
+  </script>
+
+  <script>
+    const ALL_AWARDS = [
+      { url: '/img/jay.jpg' },
+      { url: '/img/kai.jpg' },
+      { url: '/img/loyd.jpg' },
+    ];
+
+    const initialState = localStorage.getItem('state');
+    var state = initialState ? JSON.parse(initialState) : { loot: { coins: 0, awards: [] } };
     window.state = state;
 
     // state = {
     //   problems: [
     //     { left: 3, right: 8, operation: '+', answer: 11 },
-    //     { left: 8, right: 4, operation: '-' },
+    //     { left: 8, right: 4, operation: '-', answer: 4 },
     //     { left: 8, right: 9, operation: '+' },
     //   ],
+    //   loot: {
+    //     coins: 10,
+    //     awards: [
+    //       {url: '/img/jay.jpg'},
+    //       {url: '/img/kai.jpg'},
+    //     ]
+    //   },
     // }
 
     const operations = ['+', '-'];
+
+    function persistState() {
+      const toStore = { ...state };
+      delete toStore.problems;
+      localStorage.setItem('state', JSON.stringify(toStore));
+    }
 
     function getCorrectAnswer(problem) {
       if (problem.operation == '+') {
@@ -109,9 +254,13 @@
       return getCorrectAnswer(problem) == problem.answer;
     }
 
-    function startGame() {
+    function isDone(state) {
+      return state.problems.every(p => p.answer != null);
+    }
+
+    function onStartGame() {
       console.log('starting game');
-      state.problems = Array.apply(null, Array(10)).map(function () {
+      state.problems = Array.apply(null, Array(20)).map(function () {
         const problem = {
           left: Math.floor(Math.random() * 10),
           right: Math.floor(Math.random() * 10),
@@ -128,85 +277,44 @@
       render();
     }
 
-    function getAnswer(event) {
+    function onGetAnswer(event) {
       console.log('getting answer');
       event.preventDefault();
       const input = parseInt(document.querySelector('[name=answer]').value, 10);
-      const currentProblem = state.problems.find((value, index) => {
-        return !value.answer;
-      });
+      const currentProblem = state.problems.find(value => value.answer == null);
       currentProblem.answer = input;
 
       if (isCorrect(currentProblem)) {
         console.log('you did it');
+        state.loot.coins++;
       } else {
         console.log(`Not quite, ${currentProblem.left} + ${currentProblem.right} does not equal ${input}`);
+      }
+
+      if (isDone(state)) {
+        if (state.problems.every(isCorrect) &&
+          state.loot.awards.length < ALL_AWARDS.length) {
+          const currentAwardUrls = new Set(state.loot.awards.map(a => a.url));
+          state.loot.awards.push(ALL_AWARDS.find(a => !currentAwardUrls.has(a.url)));
+        }
       }
 
       render();
     }
 
     function render() {
-      const game = document.getElementById('game');
+      const game = document.getElementById('root');
 
       if (!state.problems) {
-        const startTemplate = document.getElementById('start');
-        game.innerHTML = startTemplate.innerHTML;
-      } else if (state.problems.every(p => p.answer != null)) {
-        const doneTemplate = document.getElementById('done');
-        game.innerHTML = doneTemplate.innerHTML;
-
-        game.querySelector('.correct').textContent = state.problems.filter(isCorrect).length;
-        game.querySelector('.count').textContent = state.problems.length;
+        renderStart(root);
+      } else if (isDone(state)) {
+        renderDone(root);
       } else {
-        const gameTemplate = document.getElementById('test');
-
-        const currentProblem = state.problems.find((value, index) => {
-          return !value.answer;
-        });
-
-        const previousProblem = state.problems.slice().reverse().find((value) => {
-          return !!value.answer
-        });
-
-        game.innerHTML = gameTemplate.innerHTML;
-
-        if (previousProblem) {
-          game.querySelector('.previousleft').textContent = previousProblem.left;
-          game.querySelector('.previousright').textContent = previousProblem.right;
-          game.querySelector('.previousoperation').textContent = previousProblem.operation;
-          game.querySelector('.previousanswer').textContent = previousProblem.answer;
-
-          if (isCorrect(previousProblem)) {
-            game.querySelector('.previous').style = 'color: green';
-          } else {
-            game.querySelector('.previous').style = 'color: red';
-          }
-        } else {
-          game.querySelector('.previous').classList.add('invisible');
-        }
-
-        document.querySelector('form').onsubmit = getAnswer;
-        document.querySelector('.left').textContent = currentProblem.left;
-        document.querySelector('.operation').textContent = currentProblem.operation;
-        document.querySelector('.right').textContent = currentProblem.right;
-
-        if (previousProblem) {
-          if (isCorrect(previousProblem)) {
-            document.querySelector('#previous-result').textContent = '🥷 you got it way to go! 🥷';
-            // new Audio('/audio/gadeej.mp3').play();
-            new Audio('/audio/anderson-singing-sugar-were-going-down.m4a').play();
-          } else {
-            document.querySelector('#previous-result').textContent =
-                `⛔️ Not quite, ${previousProblem.left} ${previousProblem.operation} ${previousProblem.right} does not equal ${previousProblem.answer}️️ ⛔️`;
-            new Audio('/audio/fart.mp3').play();
-          }
-        } else {
-          document.querySelector('#previous-result').classList.add('invisible');
-        }
-
-        document.querySelector('input').focus()
+        renderGame(root);
       }
+
+      renderLoot();
+      persistState();
     }
 
     render();

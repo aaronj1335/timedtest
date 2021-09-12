@@ -4,6 +4,7 @@
   "description": "\"Timed math test for kids\"",
   "main": "index.js",
   "scripts": {
+    "start": "./node_modules/.bin/serve",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
