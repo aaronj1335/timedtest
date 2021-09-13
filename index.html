@@ -329,8 +329,8 @@
           state.loot.awards.length < ALL_AWARDS.length) {
           const currentAwardUrls = new Set(state.loot.awards.map(a => a.url));
           state.loot.awards.push(ALL_AWARDS.find(a => !currentAwardUrls.has(a.url)));
-          state.end = Date.now();
         }
+        state.end = Date.now();
       }
 
       render();
