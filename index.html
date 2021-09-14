@@ -68,6 +68,25 @@
     button {
       font-size: 2rem;
     }
+
+    @keyframes wowowow {
+      0%   { transform: scale(1) }
+      10%  { transform: scale(2) }
+      20%  { transform: scale(1) }
+      30%  { transform: scale(1.8) }
+      40%  { transform: scale(1) }
+      50%  { transform: scale(1.6) }
+      60%  { transform: scale(1) }
+      70%  { transform: scale(1.2) }
+      80%  { transform: scale(1) }
+    }
+
+    .lookatme {
+      animation-name: wowowow;
+      animation-duration: 1s;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: 1;
+    }
   </style>
 </head>
 
@@ -110,6 +129,10 @@
       <span class=answered></span> / <span class=count></span> answered so far.
     </p>
 
+    <p>
+      <i>STREAK:</i> <meter></meter>
+    </p>
+
   </template>
 
   <script>
@@ -138,31 +161,37 @@
         root.querySelector('.previous').classList.add('invisible');
       }
 
-      document.querySelector('form').onsubmit = onGetAnswer;
-      document.querySelector('.left').textContent = currentProblem.left;
-      document.querySelector('.operation').textContent = currentProblem.operation;
-      document.querySelector('.right').textContent = currentProblem.right;
+      root.querySelector('form').onsubmit = onGetAnswer;
+      root.querySelector('.left').textContent = currentProblem.left;
+      root.querySelector('.operation').textContent = currentProblem.operation;
+      root.querySelector('.right').textContent = currentProblem.right;
 
       if (previousProblem) {
         if (isCorrect(previousProblem)) {
-          document.querySelector('#previous-result').textContent = '🥷 you got it way to go! 🥷';
-          new Audio('audio/guitar.mp3').play();
+          root.querySelector('#previous-result').textContent = '🥷 you got it way to go! 🥷';
+          new Audio('audio/hadouken.mp3').play();
         } else {
-          document.querySelector('#previous-result').textContent =
+          root.querySelector('#previous-result').textContent =
             `⛔️ Not quite, ${previousProblem.left} ${previousProblem.operation} ${previousProblem.right} does not equal ${previousProblem.answer}️️ ⛔️`;
           new Audio('audio/fart.mp3').play();
         }
       } else {
-        document.querySelector('#previous-result').classList.add('invisible');
+        root.querySelector('#previous-result').classList.add('invisible');
       }
 
-      document.querySelector('.answered').textContent =
+      root.querySelector('.answered').textContent =
         state.problems.filter(q => q.answer != null).length;
 
-      document.querySelector('.count').textContent = state.problems.length;
+      root.querySelector('.count').textContent = state.problems.length;
 
-      document.querySelector(ANSWER_SELECTOR).focus()
+      root.querySelector(ANSWER_SELECTOR).focus()
 
+      const meter = root.querySelector('meter')
+      meter.value = getStreak(state);
+      if (isCorrect(previousProblem)) {
+        meter.classList.remove('lookatme');
+        meter.classList.add('lookatme');
+      }
     }
   </script>
 
@@ -242,6 +271,9 @@
     //     { left: 3, right: 8, operation: '+', answer: 11 },
     //     { left: 8, right: 4, operation: '-', answer: 4 },
     //     { left: 8, right: 9, operation: '+' },
+    //     { left: 2, right: 7, operation: '+' },
+    //     { left: 3, right: 7, operation: '+' },
+    //     { left: 4, right: 7, operation: '+' },
     //   ],
     //   loot: {
     //     coins: 10,
@@ -252,8 +284,9 @@
     //   },
     // }
 
-    const operations = ['+', '-'];
+    const OPERATIONS = ['+', '-'];
     const ANSWER_SELECTOR = 'input[name=answer]';
+    const STREAK_LENGTH = 20;
 
     document.addEventListener('keyup', event => {
       const el = document.activeElement;
@@ -266,6 +299,7 @@
     function persistState() {
       const toStore = { ...state };
       delete toStore.problems;
+      delete toStore.streakStart;
       localStorage.setItem('state', JSON.stringify(toStore));
     }
 
@@ -285,13 +319,22 @@
       return state.problems.every(p => p.answer != null);
     }
 
+    function getStreak(state) {
+      const answered = state.problems
+        .slice(state.streakStart || 0)
+        .filter(p => p.answer != null);
+      const streak = answered.reverse().findIndex(p => !isCorrect(p));
+
+      return (streak >= 0? streak : answered.length) / STREAK_LENGTH;
+    }
+
     function onStartGame() {
       console.log('starting game');
       state.problems = Array.apply(null, Array(40)).map(function () {
         const problem = {
           left: Math.floor(Math.random() * 10),
           right: Math.floor(Math.random() * 10),
-          operation: operations[Math.floor(Math.random() * operations.length)],
+          operation: OPERATIONS[Math.floor(Math.random() * OPERATIONS.length)],
         }
         if (problem.operation == '-' && problem.left < problem.right) {
           const temp = problem.left;
@@ -314,7 +357,7 @@
       // Prevent accidentally submitting w/ empty value.
       if (isNaN(input)) return;
 
-      const currentProblem = state.problems.find(value => value.answer == null);
+      const currentProblem = state.problems.find(p => p.answer == null);
       currentProblem.answer = input;
 
       if (isCorrect(currentProblem)) {
@@ -324,12 +367,16 @@
         console.log(`Not quite, ${currentProblem.left} + ${currentProblem.right} does not equal ${input}`);
       }
 
-      if (isDone(state)) {
-        if (state.problems.every(isCorrect) &&
-          state.loot.awards.length < ALL_AWARDS.length) {
+      if (getStreak(state) >= 1) {
+        state.streakStart = state.problems.findIndex(p => p.answer == null);
+        if (state.loot.awards.length < ALL_AWARDS.length) {
           const currentAwardUrls = new Set(state.loot.awards.map(a => a.url));
           state.loot.awards.push(ALL_AWARDS.find(a => !currentAwardUrls.has(a.url)));
+          new Audio('audio/guitar.mp3').play();
         }
+      }
+
+      if (isDone(state)) {
         state.end = Date.now();
       }
 
@@ -348,6 +395,7 @@
       }
 
       renderLoot();
+
       persistState();
     }
 
