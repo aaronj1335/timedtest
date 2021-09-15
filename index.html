@@ -141,6 +141,12 @@
       localStorage.setItem('state', JSON.stringify(toStore));
     }
 
+    function persistGameArchive() {
+      const stringifiedState = JSON.stringify(state);
+      localStorage.setItem(`game-${Date.now()}`, stringifiedState);
+      localStorage.setItem('previousGame', stringifiedState);
+    }
+
     function getCorrectAnswer(problem) {
       if (problem.operation == '+') {
         return problem.left + problem.right;
@@ -227,7 +233,7 @@
       `;
     }
 
-    function renderGame2(root) {
+    function renderGame(root) {
       const currentProblem = state.problems.find(value => value.answer == null);
 
       const previousProblem = state.problems.slice().reverse()
@@ -345,8 +351,9 @@
         renderStart(root);
       } else if (isDone(state)) {
         renderDone(root);
+        persistGameArchive();
       } else {
-        renderGame2(root);
+        renderGame(root);
       }
 
       renderLoot();
