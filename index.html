@@ -80,174 +80,13 @@
       70%  { transform: scale(1.2) }
       80%  { transform: scale(1) }
     }
-
-    .lookatme {
-      animation-name: wowowow;
-      animation-duration: 1s;
-      animation-timing-function: ease-in-out;
-      animation-iteration-count: 1;
-    }
   </style>
 </head>
 
 <body>
-
-  <template id=start>
-    <button autofocus onclick="onStartGame()">START GAME!!! 🥷🔥</button>
-  </template>
-
-  <script>
-    function renderStart(root) {
-      const startTemplate = document.getElementById('start');
-      root.innerHTML = startTemplate.innerHTML;
-    }
-  </script>
-
-  <template id=game>
-    <div id=previous-result>&#129399;</div>
-
-    <h2 class=previous>
-      <span class=previousleft></span>
-      <span class=previousoperation></span>
-      <span class=previousright></span>
-      = <span class=previousanswer></span>
-    </h2>
-
-    <h2>
-      <span class=left></span>
-      <span class=operation></span>
-      <span class=right></span>
-      = ???
-    </h2>
-
-    <form>
-      <input type=number pattern="\d*" name=answer autofocus />
-      <input type=submit name=submit value=submit />
-    </form>
-
-    <p>
-      <span class=answered></span> / <span class=count></span> answered so far.
-    </p>
-
-    <p>
-      <i>STREAK:</i> <meter></meter>
-    </p>
-
-  </template>
-
-  <script>
-    function renderGame(root) {
-      const gameTemplate = document.getElementById('game');
-
-      const currentProblem = state.problems.find(value => value.answer == null);
-
-      const previousProblem = state.problems.slice().reverse()
-        .find(value => value.answer != null);
-
-      root.innerHTML = gameTemplate.innerHTML;
-
-      if (previousProblem) {
-        root.querySelector('.previousleft').textContent = previousProblem.left;
-        root.querySelector('.previousright').textContent = previousProblem.right;
-        root.querySelector('.previousoperation').textContent = previousProblem.operation;
-        root.querySelector('.previousanswer').textContent = previousProblem.answer;
-
-        if (isCorrect(previousProblem)) {
-          root.querySelector('.previous').style = 'color: green';
-        } else {
-          root.querySelector('.previous').style = 'color: red';
-        }
-      } else {
-        root.querySelector('.previous').classList.add('invisible');
-      }
-
-      root.querySelector('form').onsubmit = onGetAnswer;
-      root.querySelector('.left').textContent = currentProblem.left;
-      root.querySelector('.operation').textContent = currentProblem.operation;
-      root.querySelector('.right').textContent = currentProblem.right;
-
-      if (previousProblem) {
-        if (isCorrect(previousProblem)) {
-          root.querySelector('#previous-result').textContent = '🥷 you got it way to go! 🥷';
-          new Audio('audio/hadouken.mp3').play();
-        } else {
-          root.querySelector('#previous-result').textContent =
-            `⛔️ Not quite, ${previousProblem.left} ${previousProblem.operation} ${previousProblem.right} does not equal ${previousProblem.answer}️️ ⛔️`;
-          new Audio('audio/fart.mp3').play();
-        }
-      } else {
-        root.querySelector('#previous-result').classList.add('invisible');
-      }
-
-      root.querySelector('.answered').textContent =
-        state.problems.filter(q => q.answer != null).length;
-
-      root.querySelector('.count').textContent = state.problems.length;
-
-      root.querySelector(ANSWER_SELECTOR).focus()
-
-      const meter = root.querySelector('meter')
-      meter.value = getStreak(state);
-      if (isCorrect(previousProblem)) {
-        meter.classList.remove('lookatme');
-        meter.classList.add('lookatme');
-      }
-    }
-  </script>
-
-  <template id=done>
-    <h1>DONE!</h1>
-
-    <p>You're all done. You got <span class=correct></span> correct out of <span class=count></span> questions</p>
-
-    <p>It took you <span class=minutes></span> minutes and <span class=seconds></span> seconds.</p>
-
-    <p>
-      <button autofocus onclick="onStartGame()">START GAME AGAIN!!! 🥷🔥</button>
-    </p>
-  </template>
-
-  <script>
-    function renderDone(root) {
-      new Audio('audio/anderson-singing-sugar-were-going-down.m4a').play();
-
-      const doneTemplate = document.getElementById('done');
-      root.innerHTML = doneTemplate.innerHTML;
-
-      root.querySelector('.correct').textContent = state.problems.filter(isCorrect).length;
-      root.querySelector('.count').textContent = state.problems.length;
-
-      const totalSeconds = (state.end - state.start) / 1000;
-      root.querySelector('.minutes').textContent = Math.floor(totalSeconds / 60);
-      root.querySelector('.seconds').textContent = Math.floor(totalSeconds % 60);
-
-      document.querySelector('button').focus()
-    }
-  </script>
-
   <div id=root></div>
 
-  <div id=loot>
-    <p>
-      <span id=coins></span> x
-      <img src="img/coin.jpg" />
-    </p>
-
-    <div id=awards>
-    </div>
-  </div>
-
-  <script>
-    function renderLoot() {
-      document.getElementById('coins').textContent = state.loot.coins || 0;
-      document.getElementById('awards').innerHTML =
-        (state.loot.awards || []).map(award => `
-          <div>
-            <img src="${award.url}" />
-          </div>`)
-          .join('\n');
-    }
-  </script>
+  <div id=loot></div>
 
   <script>
     const ALL_AWARDS = [
@@ -255,6 +94,9 @@
       { url: 'img/kai.jpg' },
       { url: 'img/loyd.jpg' },
     ];
+    const OPERATIONS = ['+', '-'];
+    const ANSWER_SELECTOR = 'input[name=answer]';
+    const STREAK_LENGTH = 4;
 
     const initialState = localStorage.getItem('state');
     var state = initialState ? JSON.parse(initialState) : {
@@ -265,28 +107,24 @@
     };
     window.state = state;
 
-    // state = {
-    //   start: Date.now(),
-    //   problems: [
-    //     { left: 3, right: 8, operation: '+', answer: 11 },
-    //     { left: 8, right: 4, operation: '-', answer: 4 },
-    //     { left: 8, right: 9, operation: '+' },
-    //     { left: 2, right: 7, operation: '+' },
-    //     { left: 3, right: 7, operation: '+' },
-    //     { left: 4, right: 7, operation: '+' },
-    //   ],
-    //   loot: {
-    //     coins: 10,
-    //     awards: [
-    //       // {url: '/img/jay.jpg'},
-    //       // {url: '/img/kai.jpg'},
-    //     ]
-    //   },
-    // }
-
-    const OPERATIONS = ['+', '-'];
-    const ANSWER_SELECTOR = 'input[name=answer]';
-    const STREAK_LENGTH = 20;
+    state = {
+      start: Date.now(),
+      problems: [
+        { left: 3, right: 8, operation: '+', answer: 11 },
+        { left: 8, right: 4, operation: '-', answer: 4 },
+        { left: 8, right: 9, operation: '+' },
+        { left: 2, right: 7, operation: '+' },
+        // { left: 3, right: 7, operation: '+' },
+        // { left: 4, right: 7, operation: '+' },
+      ],
+      loot: {
+        coins: 10,
+        awards: [
+          // {url: '/img/jay.jpg'},
+          // {url: '/img/kai.jpg'},
+        ]
+      },
+    };
 
     document.addEventListener('keyup', event => {
       const el = document.activeElement;
@@ -383,6 +221,123 @@
       render();
     }
 
+    function renderStart(root) {
+      root.innerHTML = `
+        <button autofocus onclick="onStartGame()">START GAME!!! 🥷🔥</button>
+      `;
+    }
+
+    function renderGame2(root) {
+      const currentProblem = state.problems.find(value => value.answer == null);
+
+      const previousProblem = state.problems.slice().reverse()
+        .find(value => value.answer != null);
+
+      root.innerHTML = `
+        <style>
+          .lookatme {
+            animation-name: wowowow;
+            animation-duration: 1s;
+            animation-timing-function: ease-in-out;
+            animation-iteration-count: 1;
+          }
+        </style>
+
+        <div id=previous-result class="${previousProblem? '' : 'invisible'}">
+          ${previousProblem?
+            isCorrect(previousProblem)?
+                `🥷 you got it way to go! 🥷` :
+                `⛔️ Not quite, ${previousProblem.left} ${previousProblem.operation} ${previousProblem.right} does not equal ${previousProblem.answer}️️ ⛔️` :
+            `&#129399;`}
+        </div>
+
+        <h2 class="previous ${previousProblem? "" : "invisible"}"
+            style="color: ${previousProblem && isCorrect(previousProblem)?
+                "green" : "red"}">
+          ${previousProblem?.left}
+          ${previousProblem?.operation}
+          ${previousProblem?.right} = ${previousProblem?.answer}
+        </h2>
+
+        <h2>
+          ${currentProblem.left}
+          ${currentProblem.operation}
+          ${currentProblem.right}
+          = ???
+        </h2>
+
+        <form>
+          <input type=number pattern="\d*" name=answer autofocus />
+          <input type=submit name=submit value=submit />
+        </form>
+
+        <p>
+          ${state.problems.filter(q => q.answer != null).length} / ${state.problems.length} answered so far.
+        </p>
+
+        <p>
+          <i>STREAK:</i>
+          <meter value="${getStreak(state)}"
+                class="${previousProblem && isCorrect(previousProblem)? 'lookatme' : ''}">
+          </meter>
+        </p>
+      `;
+
+      root.querySelector('form').onsubmit = onGetAnswer;
+
+      if (previousProblem) {
+        if (isCorrect(previousProblem)) {
+          new Audio('audio/hadouken.mp3').play();
+        } else {
+          new Audio('audio/fart.mp3').play();
+        }
+      }
+
+      root.querySelector(ANSWER_SELECTOR).focus()
+    }
+
+    function renderDone(root) {
+      new Audio('audio/anderson-singing-sugar-were-going-down.m4a').play();
+
+      const totalSeconds = (state.end - state.start) / 1000;
+
+      root.innerHTML = `
+        <h1>DONE!</h1>
+
+        <p>
+          You're all done. You got ${state.problems.filter(isCorrect).length}
+          correct out of ${state.problems.length} questions.
+        </p>
+
+        <p>
+          It took you ${Math.floor(totalSeconds / 60)} minutes and
+          ${Math.floor(totalSeconds % 60)} seconds.
+        </p>
+
+        <p>
+          <button autofocus onclick="onStartGame()">START GAME AGAIN!!! 🥷🔥</button>
+        </p>
+      `;
+
+      document.querySelector('button').focus()
+    }
+
+    function renderLoot() {
+      document.getElementById('loot').innerHTML = `
+        <p>
+          ${state.loot.coins || 0} x <img src="img/coin.jpg" />
+        </p>
+
+        <div id=awards>
+          ${(state.loot.awards || []).map(award => `
+              <div>
+                <img src="${award.url}" />
+              </div>
+            `).join('\n')}
+        </div>
+      `;
+    }
+
     function render() {
       const game = document.getElementById('root');
 
@@ -391,7 +346,7 @@
       } else if (isDone(state)) {
         renderDone(root);
       } else {
-        renderGame(root);
+        renderGame2(root);
       }
 
       renderLoot();
