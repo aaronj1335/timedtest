@@ -1,2 +1,0 @@
-const NUM_PROBLEMS = 1;
-console.log("I WANT THE NINJAS AND THEY ARE LEGOS");
