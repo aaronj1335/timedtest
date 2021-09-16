@@ -97,6 +97,7 @@
     const OPERATIONS = ['+', '-'];
     const ANSWER_SELECTOR = 'input[name=answer]';
     const STREAK_LENGTH = 20;
+    const PROBLEMS_PER_TEST = 50;
 
     const initialState = localStorage.getItem('state');
     var state = initialState ? JSON.parse(initialState) : {
@@ -174,7 +175,7 @@
 
     function onStartGame() {
       console.log('starting game');
-      state.problems = Array.apply(null, Array(40)).map(function () {
+      state.problems = Array.apply(null, Array(PROBLEMS_PER_TEST)).map(function () {
         const problem = {
           left: Math.floor(Math.random() * 10),
           right: Math.floor(Math.random() * 10),
