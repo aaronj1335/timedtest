@@ -109,6 +109,18 @@
       }
     };
     window.state = state;
+    window.dbg = {
+      archives: () => Object.keys(localStorage)
+        .filter(k => /\d+$/.test(k))
+        .map(k => new Date(parseInt(k.split('-')[1], 10)))
+        .sort()
+        .map(d => [Intl.DateTimeFormat().format(d), d])
+        .reduce((archives, [formattedDate, date]) => {
+          archives[formattedDate] =
+              JSON.parse(localStorage[`game-${Number(date)}`]);
+          return archives;
+        }, {}),
+    };
 
     // state = {
     //   start: Date.now(),
@@ -148,6 +160,10 @@
       const stringifiedState = JSON.stringify(state);
       localStorage.setItem(`game-${Date.now()}`, stringifiedState);
       localStorage.setItem('previousGame', stringifiedState);
+    }
+
+    function persistCurrentGame() {
+      localStorage.setItem('currentGameSnapshot', JSON.stringify(state));
     }
 
     function getCorrectAnswer(problem) {
@@ -362,6 +378,7 @@
       renderLoot();
 
       persistState();
+      persistCurrentGame();
     }
 
     render();
