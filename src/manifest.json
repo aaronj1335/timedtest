@@ -1,0 +1,14 @@
+{
+  "name": "timedtest",
+  "short_name": "timedtest",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff",
+  "theme_color": "#ffdd01",
+  "icons": [{
+    "src": "/assets/icons/android-chrome-196x196.png",
+    "type": "image/png",
+    "sizes": "196x196"
+  }]
+}
