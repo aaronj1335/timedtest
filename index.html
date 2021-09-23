@@ -92,13 +92,21 @@
     const ALL_AWARDS = [
       { url: 'img/jay.jpg' },
       { url: 'img/kai.jpg' },
-      { url: 'img/loyd.jpg' },
+      { url: 'img/lloyd.jpg' },
       { url: 'img/nya.png' },
       { url: 'img/lord-garmadon.jpg' },
+      { url: 'img/zane.jpg' },
+      { url: 'img/sensei.jpg' },
+      { url: 'img/golden-jay.jpg' },
+      { url: 'img/golden-kai.jpg' },
+      { url: 'img/golden-lloyd.jpg' },
+      { url: 'img/golden-nya.jpg' },
+      { url: 'img/golden-zane.jpg' },
+      { url: 'img/golden-sensei.jpg' },
     ];
     const OPERATIONS = ['+', '-'];
     const ANSWER_SELECTOR = 'input[name=answer]';
-    const STREAK_LENGTH = 20;
+    const STREAK_LENGTH = 22;
     const PROBLEMS_PER_TEST = 50;
 
     const initialState = localStorage.getItem('state');
@@ -108,6 +116,7 @@
         awards: []
       }
     };
+    state.streakLength = state.streakLength ?? STREAK_LENGTH;
     window.state = state;
     window.dbg = {
       archives: () => Object.keys(localStorage)
@@ -188,7 +197,7 @@
         .filter(p => p.answer != null);
       const streak = answered.reverse().findIndex(p => !isCorrect(p));
 
-      return (streak >= 0? streak : answered.length) / STREAK_LENGTH;
+      return (streak >= 0? streak : answered.length) / state.streakLength;
     }
 
     function onStartGame() {
@@ -236,6 +245,7 @@
           const currentAwardUrls = new Set(state.loot.awards.map(a => a.url));
           state.loot.awards.push(ALL_AWARDS.find(a => !currentAwardUrls.has(a.url)));
           new Audio('audio/guitar.mp3').play();
+          state.streakLength += 2;
         }
       }
 
