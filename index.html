@@ -200,12 +200,35 @@
       return (streak >= 0? streak : answered.length) / state.streakLength;
     }
 
-    function onStartGame() {
-      console.log('starting game');
+    function onStartBeginnersGame() {
+      console.log('starting beginners game');
       state.problems = Array.apply(null, Array(PROBLEMS_PER_TEST)).map(function () {
         const problem = {
           left: Math.floor(Math.random() * 10),
           right: Math.floor(Math.random() * 10),
+          operation: OPERATIONS[Math.floor(Math.random() * OPERATIONS.length)],
+        }
+        if (problem.operation == '-' && problem.left < problem.right) {
+          const temp = problem.left;
+          problem.left = problem.right;
+          problem.right = temp;
+        }
+        return problem;
+      });
+
+      state.start = Date.now();
+
+      render();
+    }
+
+    function onStart9sGame() {
+      console.log('starting 9s game');
+      state.problems = Array.apply(null, Array(PROBLEMS_PER_TEST)).map(function () {
+        const which = Math.random() * 2 > 1? 'left' : 'right';
+        const other = which == 'left'? 'right' : 'left';
+        const problem = {
+          [which]: 9,
+          [other]: Math.floor(Math.random() * 100),
           operation: OPERATIONS[Math.floor(Math.random() * OPERATIONS.length)],
         }
         if (problem.operation == '-' && problem.left < problem.right) {
@@ -258,7 +281,11 @@
 
     function renderStart(root) {
       root.innerHTML = `
-        <button autofocus onclick="onStartGame()">START GAME!!! 🥷🔥</button>
+        <button autofocus onclick="onStartBeginnersGame()">START BEGINNER'S GAME!!! 🥷🔥</button>
+
+        <br/>
+
+        <button autofocus onclick="onStart9sGame()">START 9's GAME!!! 🔥🔥🔥</button>
       `;
     }
 
@@ -350,7 +377,7 @@
         </p>
 
         <p>
-          <button autofocus onclick="onStartGame()">START GAME AGAIN!!! 🥷🔥</button>
+          <button autofocus onclick="onStartBeginnersGame()">START GAME AGAIN!!! 🥷🔥</button>
         </p>
       `;
 
