@@ -200,14 +200,9 @@
       return (streak >= 0? streak : answered.length) / state.streakLength;
     }
 
-    function onStartBeginnersGame() {
-      console.log('starting beginners game');
-      state.problems = Array.apply(null, Array(PROBLEMS_PER_TEST)).map(function () {
-        const problem = {
-          left: Math.floor(Math.random() * 10),
-          right: Math.floor(Math.random() * 10),
-          operation: OPERATIONS[Math.floor(Math.random() * OPERATIONS.length)],
-        }
+    function onStartGame(problems) {
+      console.log('starting game');
+      state.problems = problems.map(problem => {
         if (problem.operation == '-' && problem.left < problem.right) {
           const temp = problem.left;
           problem.left = problem.right;
@@ -221,27 +216,54 @@
       render();
     }
 
-    function onStart9sGame() {
-      console.log('starting 9s game');
-      state.problems = Array.apply(null, Array(PROBLEMS_PER_TEST)).map(function () {
+    function getBeginnersProblems() {
+      console.log('getting beginners problems');
+      return Array.apply(null, Array(PROBLEMS_PER_TEST)).map(function () {
+        return {
+          left: Math.floor(Math.random() * 10),
+          right: Math.floor(Math.random() * 10),
+          operation: OPERATIONS[Math.floor(Math.random() * OPERATIONS.length)],
+        };
+      });
+    }
+
+    function get9sAdditionProblems() {
+      console.log('getting 9s addition problems');
+      return Array.apply(null, Array(PROBLEMS_PER_TEST)).map(function () {
         const which = Math.random() * 2 > 1? 'left' : 'right';
         const other = which == 'left'? 'right' : 'left';
-        const problem = {
+        return {
+          [which]: 9,
+          [other]: Math.floor(Math.random() * 100),
+          operation: '+',
+        };
+      });
+    }
+
+    function get9sSubtractionProblems() {
+      console.log('getting 9s subtraction problems');
+      return Array.apply(null, Array(PROBLEMS_PER_TEST)).map(function () {
+        const which = Math.random() * 2 > 1? 'left' : 'right';
+        const other = which == 'left'? 'right' : 'left';
+        return {
+          [which]: 9,
+          [other]: Math.floor(Math.random() * 100),
+          operation: '-',
+        };
+      });
+    }
+
+    function get9sProblems() {
+      console.log('getting 9s problems');
+      return Array.apply(null, Array(PROBLEMS_PER_TEST)).map(function () {
+        const which = Math.random() * 2 > 1? 'left' : 'right';
+        const other = which == 'left'? 'right' : 'left';
+        return {
           [which]: 9,
           [other]: Math.floor(Math.random() * 100),
           operation: OPERATIONS[Math.floor(Math.random() * OPERATIONS.length)],
-        }
-        if (problem.operation == '-' && problem.left < problem.right) {
-          const temp = problem.left;
-          problem.left = problem.right;
-          problem.right = temp;
-        }
-        return problem;
+        };
       });
-
-      state.start = Date.now();
-
-      render();
     }
 
     function onGetAnswer(event) {
@@ -281,11 +303,19 @@
 
     function renderStart(root) {
       root.innerHTML = `
-        <button autofocus onclick="onStartBeginnersGame()">START BEGINNER'S GAME!!! 🥷🔥</button>
+        <button autofocus onclick="onStartGame(getBeginnersProblems())">START BEGINNER'S GAME!!! 🥷🔥</button>
 
         <br/>
 
-        <button autofocus onclick="onStart9sGame()">START 9's GAME!!! 🔥🔥🔥</button>
+        <button autofocus onclick="onStartGame(get9sAdditionProblems())">START 9's ADDITION GAME!!! 🔥🔥🔥</button>
+
+        <br/>
+
+        <button autofocus onclick="onStartGame(get9sSubtractionProblems())">START 9's SUBTRACTION GAME!!! 🔥🔥🔥</button>
+
+        <br/>
+
+        <button autofocus onclick="onStartGame(get9sProblems())">START 9's GAME!!! 🔥🔥🔥</button>
       `;
     }
 
