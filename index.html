@@ -90,12 +90,12 @@
 
   <script>
     const ALL_AWARDS = [
-      { url: 'img/jay.jpg' },
-      { url: 'img/kai.jpg' },
-      { url: 'img/lloyd.jpg' },
-      { url: 'img/nya.png' },
-      { url: 'img/lord-garmadon.jpg' },
-      { url: 'img/zane.jpg' },
+      { url: 'img/pikachu.jpg' },
+      { url: 'img/charizard.jpg' },
+      { url: 'img/mewtwo.png' },
+      { url: 'img/arceus.jpg' },
+      { url: 'img/130-Gyarados.webp' },
+      { url: 'img/Dialga.jpeg' },
       { url: 'img/sensei.jpg' },
       { url: 'img/golden-jay.jpg' },
       { url: 'img/golden-kai.jpg' },
@@ -134,20 +134,26 @@
     // state = {
     //   start: Date.now(),
     //   problems: [
-    //     { left: 3, right: 8, operation: '+', answer: 11 },
-    //     { left: 8, right: 4, operation: '-', answer: 4 },
+    //     { left: 3, right: 8, operation: '+' },
+    //     { left: 8, right: 4, operation: '-' },
     //     { left: 8, right: 9, operation: '+' },
-    //     { left: 2, right: 7, operation: '+' },
-    //     // { left: 3, right: 7, operation: '+' },
-    //     // { left: 4, right: 7, operation: '+' },
+    //     { left: 7, right: 4, operation: '-' },
+    //     { left: 12, right: 7, operation: '+' },
+    //     { left: 14, right: 7, operation: '-' },
+    //     { left: 8, right: 9, operation: '+' },
+    //     { left: 2, right: 1, operation: '+' },
+    //     { left: 13, right: 7, operation: '-' },
+    //     { left: 18, right: 12, operation: '+' },
     //   ],
     //   loot: {
     //     coins: 10,
     //     awards: [
-    //       // {url: '/img/jay.jpg'},
-    //       // {url: '/img/kai.jpg'},
+    //       {url: 'img/pikachu.jpg'},
+    //       {url: 'img/charizard.jpg'},
+    //       {url: 'img/mewtwo.png'},
     //     ]
     //   },
+    //   streakLength: STREAK_LENGTH,
     // };
 
     document.addEventListener('keyup', event => {
@@ -407,7 +413,7 @@
         </p>
 
         <p>
-          <button autofocus onclick="onStartBeginnersGame()">START GAME AGAIN!!! 🥷🔥</button>
+          <button autofocus onclick="onStartGame(getBeginnersProblems())">START GAME AGAIN!!! 🥷🔥</button>
         </p>
       `;
 
